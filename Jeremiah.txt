@@ -363,7 +363,9 @@ as in a moment, and no hands stayed on her.
 
 4:7 Her Nazarites were purer than snow, they were whiter than milk,
 they were more ruddy in body than rubies, their polishing was of
-sapphire: 4:8 Their visage is blacker than a coal; they are not known
+sapphire:
+
+4:8 Their visage is blacker than a coal; they are not known
 in the streets: their skin cleaveth to their bones; it is withered, it
 is become like a stick.
 

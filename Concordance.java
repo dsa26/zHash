@@ -35,6 +35,41 @@ public class Concordance extends Canvas {
     }
 
     public static void main(String[] args) {
+        init();
+
+        for (int i = 0; i < hash.size(); i++) {
+            Node<Integer[][]> node = hash.getIndex(i);
+            // Note: Just realized that this only checks for the first node in the LL
+            // if (node != null) {
+            // System.out.print("Index: " + i + " Key: " + node.key);
+            // for (int j = 0; j < node.val.length; j++) {
+            // System.out.print(" [" + node.val[j][0] + ", " + node.val[j][1] + "]");
+            // }
+            // System.out.println("");
+            // }
+        }
+
+        System.out.println("Size: " + hash.size());
+        System.out.println("Filled Size: " + hash.filledSize());
+        System.out.println("Total Collisions: " + hash.totalCollisions());
+        System.out.println("Most Collisions: " + hash.mostCollisions());
+
+        JFrame frame = new JFrame("HashMap Visualization");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1300, 1000);
+        Concordance view = new Concordance(hash);
+        view.setSize(1300, 1000);
+        ScrollPane sp = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
+        sp.add(view);
+        frame.add(sp);
+        // frame.setVisible(true);
+    }
+
+    private Integer[][] lookup(String word) {
+        return hash.get(word);
+    }
+
+    private static void init() {
         Hash<Integer[][]> hash = new Hash<>(10000);
         String[][] verses = readBible();
 
@@ -55,32 +90,6 @@ public class Concordance extends Canvas {
                 }
             }
         }
-
-        for (int i = 0; i < hash.size(); i++) {
-            Node<Integer[][]> node = hash.getIndex(i);
-            if (node != null) {
-                System.out.print("Index: " + i + " Key: " + node.key);
-                for (int j = 0; j < node.val.length; j++) {
-                    System.out.print(" [" + node.val[j][0] + ", " + node.val[j][1] + "]");
-                }
-                System.out.println("");
-            }
-        }
-
-        System.out.println("Size: " + hash.size());
-        System.out.println("Filled Size: " + hash.filledSize());
-        System.out.println("Total Collisions: " + hash.totalCollisions());
-        System.out.println("Most Collisions: " + hash.mostCollisions());
-
-        JFrame frame = new JFrame("HashMap Visualization");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1300, 1000);
-        Concordance view = new Concordance(hash);
-        view.setSize(1300, 1000);
-        ScrollPane sp = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-        sp.add(view);
-        frame.add(sp);
-        frame.setVisible(true);
     }
 
     private static String[][] readBible() {
@@ -91,6 +100,9 @@ public class Concordance extends Canvas {
             int currentColumn = 0;
             while (line != null) {
                 line = line.toLowerCase().replaceAll("(?![a-z]| |[1-9]|:).", "");
+                // if (currentRow == 4 && currentColumn == 19)
+                // System.out.println("check 1");
+                // Don't know why this line doesn't get read
                 if (!line.equals("") && Character.isDigit(line.charAt(0))) {
                     String row = "";
                     String column = "";
@@ -108,7 +120,8 @@ public class Concordance extends Canvas {
                     bible[currentRow][currentColumn] = "";
                 if (!line.equals(""))
                     line += " ";
-                bible[currentRow][currentColumn] += line;
+                bible[currentRow][currentColumn] += line.replaceAll(":", ""); // Had to wait because colon represents
+                                                                              // verse numbering
                 line = br.readLine();
             }
         } catch (IOException e) {
