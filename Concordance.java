@@ -3,6 +3,9 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
+
 import java.awt.*;
 
 import java.util.Arrays;
@@ -13,26 +16,12 @@ import java.util.Arrays;
 public class Concordance extends Canvas {
     private Hash<Integer[][]> hash;
     private String[][] verses;
-    private static final Font small = new Font("Sans Serif", Font.PLAIN, 12);
-    private static final Font medium = new Font("Sans Serif", Font.BOLD, 14);
-    private static final Font large = new Font("Sans Serif", Font.BOLD, 18);
+    private static final Font SMALL = new Font("Sans Serif", Font.PLAIN, 12);
+    private static final Font MEDIUM = new Font("Sans Serif", Font.BOLD, 14);
+    private static final Font LARGE = new Font("Sans Serif", Font.BOLD, 18);
 
     public Concordance(Hash<Integer[][]> hash) {
         this.hash = hash;
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-    }
-
-    public void calculatePoints(Graphics g, int x, int y, int i, Node<Integer[][]> node) {
-
-    }
-
-    @Override
-    public void update(Graphics g) {
-        paint(g);
     }
 
     public static void main(String[] args) {
@@ -51,7 +40,7 @@ public class Concordance extends Canvas {
         // // }
         // }
 
-        view.process(view.lookup(args[0]), args[0]);
+        // view.process(args[0]);
 
         System.out.println("Size: " + view.hash.size());
         System.out.println("Filled Size: " + view.hash.filledSize());
@@ -61,14 +50,47 @@ public class Concordance extends Canvas {
         JFrame frame = new JFrame("HashMap Visualization");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1300, 1000);
-        view.setSize(1300, 1000);
-        ScrollPane sp = new ScrollPane(ScrollPane.SCROLLBARS_AS_NEEDED);
-        sp.add(view);
-        frame.add(sp);
-        // frame.setVisible(true);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+        JPanel search = new JPanel();
+        JLabel searchTitle = new JLabel("Bible Lookup: ");
+        searchTitle.setFont(LARGE);
+        searchTitle.setHorizontalAlignment(JLabel.CENTER);
+        search.add(searchTitle);
+        JTextField searchField = new JTextField(20);
+        searchField.setFont(SMALL);
+        search.add(searchField);
+        mainPanel.add(search);
+
+        JPanel results = new JPanel();
+        results.setLayout(new BoxLayout(results, BoxLayout.Y_AXIS));
+        mainPanel.add(results);
+
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) {
+                view.process(searchField.getText(), results);
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                view.process(searchField.getText(), results);
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                view.process(searchField.getText(), results);
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        frame.add(scrollPane);
+        frame.setVisible(true);
     }
 
-    private void process(Integer[][] positions, String word) {
+    private void process(String word) {
+        Integer[][] positions = lookup(word);
         if (positions == null)
             return;
         for (Integer[] verse : positions) {
@@ -81,6 +103,34 @@ public class Concordance extends Canvas {
             }
             System.out.println("\n");
         }
+    }
+
+    private void process(String word, JPanel results) {
+        Integer[][] positions = lookup(word);
+        results.removeAll();
+        results.revalidate();
+        results.repaint();
+        if (positions == null)
+            return;
+        for (Integer[] verse : positions) {
+            String verseDisplay = "";
+            String[] verseParts = verses[verse[0]][verse[1]].split(" " + word + " ");
+            verseDisplay += (verse[0] + 1) + ":" + (verse[1] + 1) + " ";
+            for (int i = 0; i < verseParts.length; i++) {
+                if (i != 0)
+                    verseDisplay += "<b> " + word + " </b>"; // Makes the word bold
+                verseDisplay += verseParts[i];
+            }
+            JLabel verseLabel = new JLabel(
+                    "<html><div style='width: 650px; padding: 10px;'>" + verseDisplay + "</div></html>");
+            // Google AI Overview recommended using HTML for easier formatting
+            verseLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+            JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            wrapper.add(verseLabel); // For easier sizing, spacing, and wrapping
+            results.add(wrapper);
+        }
+        results.revalidate();
+        results.repaint();
     }
 
     private Integer[][] lookup(String word) {
